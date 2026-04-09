@@ -5,14 +5,57 @@ const {
   GatewayIntentBits,
   PermissionsBitField,
 } = require("discord.js");
+const { REST, Routes, SlashCommandBuilder } = require("discord.js");
 require("dotenv").config();
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
 });
 
-client.on("ready", () => {
+client.on("ready", async () => {
   console.log(`🤖 Bot is online as ${client.user.tag}`);
+
+  const commands = [
+    new SlashCommandBuilder()
+      .setName("ping")
+      .setDescription("Replies with Pong!"),
+
+    new SlashCommandBuilder()
+      .setName("ban")
+      .setDescription("Ban a user")
+      .addUserOption(option =>
+        option.setName("user").setDescription("User to ban").setRequired(true)
+      ),
+
+    new SlashCommandBuilder()
+      .setName("kick")
+      .setDescription("Kick a user")
+      .addUserOption(option =>
+        option.setName("user").setDescription("User to kick").setRequired(true)
+      ),
+
+    new SlashCommandBuilder()
+      .setName("timeout")
+      .setDescription("Timeout a user")
+      .addUserOption(option =>
+        option.setName("user").setDescription("User").setRequired(true)
+      )
+      .addIntegerOption(option =>
+        option.setName("duration").setDescription("Seconds").setRequired(true)
+      )
+  ].map(cmd => cmd.toJSON());
+
+  const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+
+  try {
+    await rest.put(
+      Routes.applicationCommands(client.user.id),
+      { body: commands }
+    );
+    console.log("✅ Commands registered");
+  } catch (err) {
+    console.error(err);
+  }
 });
 
 client.on("interactionCreate", async (interaction) => {
@@ -116,8 +159,3 @@ app.listen(3000, () => {
   console.log("Server is running on port 3000");
 });
 // Ye tumhara pehle se existing code hai
-client.on("interactionCreate", async (interaction) => {
-  // ... tumhara commands wala code
-});
-
-// 👇 Ye line se neeche server wala code paste karo:
